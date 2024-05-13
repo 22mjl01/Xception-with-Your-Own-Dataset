@@ -73,6 +73,8 @@ def main(args):
     input_paths, labels = [], []
     for class_name in os.listdir(args.dataset_root):
         class_root = os.path.join(args.dataset_root, class_name)
+        if class_name.startswith("."):
+            continue
         class_id = classes.index(class_name)
         for path in os.listdir(class_root):
             path = os.path.join(class_root, path)
@@ -134,13 +136,13 @@ def main(args):
     # compile model
     model.compile(
         loss=categorical_crossentropy,
-        optimizer=Adam(lr=args.lr_pre),
+        optimizer=Adam(learning_rate=args.lr_pre),
         metrics=['accuracy']
     )
 
     # train
-    hist_pre = model.fit_generator(
-        generator=generate_from_paths_and_labels(
+    hist_pre = model.fit(
+        x=generate_from_paths_and_labels(
             input_paths=train_input_paths,
             labels=train_labels,
             batch_size=args.batch_size_pre
@@ -160,8 +162,7 @@ def main(args):
             ModelCheckpoint(
                 filepath=os.path.join(
                     args.result_root,
-                    'model_pre_ep{epoch}_valloss{val_loss:.3f}.h5'),
-                period=args.snapshot_period_pre,
+                    'model_pre_ep{epoch}_valloss{val_loss:.3f}.keras'),
             ),
         ],
     )
@@ -176,13 +177,13 @@ def main(args):
 
     # recompile
     model.compile(
-        optimizer=Adam(lr=args.lr_fine),
+        optimizer=Adam(learning_rate=args.lr_fine),
         loss=categorical_crossentropy,
         metrics=['accuracy'])
 
     # train
-    hist_fine = model.fit_generator(
-        generator=generate_from_paths_and_labels(
+    hist_fine = model.fit(
+        x=generate_from_paths_and_labels(
             input_paths=train_input_paths,
             labels=train_labels,
             batch_size=args.batch_size_fine
@@ -202,12 +203,11 @@ def main(args):
             ModelCheckpoint(
                 filepath=os.path.join(
                     args.result_root,
-                    'model_fine_ep{epoch}_valloss{val_loss:.3f}.h5'),
-                period=args.snapshot_period_fine,
+                    'model_fine_ep{epoch}_valloss{val_loss:.3f}.keras'),
             ),
         ],
     )
-    model.save(os.path.join(args.result_root, 'model_fine_final.h5'))
+    model.save(os.path.join(args.result_root, 'model_fine_final.keras'))
 
     # ====================================================
     # Create & save result graphs
