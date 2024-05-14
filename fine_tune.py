@@ -6,8 +6,6 @@ import imghdr
 import pickle as pkl
 import numpy as np
 import matplotlib.pyplot as plt
-import monai
-from transformers.utils import cached_path, hf_bucket_url
 from keras.applications.xception import Xception, preprocess_input
 from keras.optimizers import Adam
 from keras.preprocessing import image
@@ -118,21 +116,11 @@ def main(args):
     # NOTE: the top classifier is not included
     
     #model 1: CNN
-    #base_model = Xception(
-    #    include_top=False,
-    #    weights='imagenet',
-    #    input_shape=(299, 299, 3))
+    base_model = Xception(
+        include_top=False,
+        weights='imagenet',
+        input_shape=(299, 299, 3))
     
-    #model 2: transformer
-    base_model = monai.networks.nets.Transchex(in_channels=3,
-                     img_size=(224, 224),
-                     num_classes=3,
-                     patch_size = (32, 32),
-                     num_language_layers=2,
-                     num_vision_layers=2,
-                     num_mixed_layers=2,
-                     drop_out=0.2)
-
     # create a custom top classifier
     x = base_model.output
     x = GlobalAveragePooling2D()(x)
